@@ -208,14 +208,8 @@
     </div>
 
     <script>
-        // Conexiune optimizată cu evenimentul CEF
-        if (window.cef) {
-            cef.on("updateHUDData", (name, server, time, date, cash, bank, hp, ap, weapon, ammo) => {
-                updateHUD(name, server, time, date, cash, bank, hp, ap, weapon, ammo);
-            });
-        }
-
-        function updateHUD(name, server, time, date, cash, bank, hp, ap, weapon, ammo) {
+        // Funcție globală pe care o poate apela direct SA-MP sau CEF event listener
+        window.updateHUD = function(name, server, time, date, cash, bank, hp, ap, weapon, ammo) {
             document.getElementById('ply-name').innerText = name;
             document.getElementById('srv-name').innerText = server;
             document.getElementById('hud-time').innerText = time;
@@ -224,19 +218,24 @@
             document.getElementById('hud-cash').innerText = "$" + cash.toLocaleString('ro-RO');
             document.getElementById('hud-bank').innerText = "$" + bank.toLocaleString('ro-RO');
 
-            // Viață și Armură (delimitate corect 0-100)
             let cleanHp = Math.min(Math.max(hp, 0), 100);
             let cleanAp = Math.min(Math.max(ap, 0), 100);
 
             document.getElementById('bar-hp').style.width = cleanHp + "%";
-            document.getElementById('hp-val.innerText = Math.round(cleanHp) + "%"; // mică corectură inline de sintaxă
+            document.getElementById('hp-val').innerText = Math.round(cleanHp) + "%";
 
             document.getElementById('bar-ap').style.width = cleanAp + "%";
             document.getElementById('ap-val').innerText = Math.round(cleanAp) + "%";
 
-            // Armă și Gloanțe
             document.getElementById('weap-name').innerText = weapon;
             document.getElementById('weap-ammo').innerText = ammo;
+        };
+
+        // Ascultător pentru evenimentul CEF
+        if (typeof cef !== 'undefined') {
+            cef.on("updateHUDData", (name, server, time, date, cash, bank, hp, ap, weapon, ammo) => {
+                window.updateHUD(name, server, time, date, cash, bank, hp, ap, weapon, ammo);
+            });
         }
     </script>
 </body>
