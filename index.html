@@ -208,35 +208,41 @@
     </div>
 
     <script>
-        // Funcție globală pe care o poate apela direct SA-MP sau CEF event listener
-        window.updateHUD = function(name, server, time, date, cash, bank, hp, ap, weapon, ammo) {
-            document.getElementById('ply-name').innerText = name;
-            document.getElementById('srv-name').innerText = server;
-            document.getElementById('hud-time').innerText = time;
-            document.getElementById('hud-date').innerText = date;
-            
-            document.getElementById('hud-cash').innerText = "$" + cash.toLocaleString('ro-RO');
-            document.getElementById('hud-bank').innerText = "$" + bank.toLocaleString('ro-RO');
-
-            let cleanHp = Math.min(Math.max(hp, 0), 100);
-            let cleanAp = Math.min(Math.max(ap, 0), 100);
-
-            document.getElementById('bar-hp').style.width = cleanHp + "%";
-            document.getElementById('hp-val').innerText = Math.round(cleanHp) + "%";
-
-            document.getElementById('bar-ap').style.width = cleanAp + "%";
-            document.getElementById('ap-val').innerText = Math.round(cleanAp) + "%";
-
-            document.getElementById('weap-name').innerText = weapon;
-            document.getElementById('weap-ammo').innerText = ammo;
-        };
-
-        // Ascultător pentru evenimentul CEF
+        // Conexiune optimizată cu evenimentul CEF
         if (typeof cef !== 'undefined') {
             cef.on("updateHUDData", (name, server, time, date, cash, bank, hp, ap, weapon, ammo) => {
-                window.updateHUD(name, server, time, date, cash, bank, hp, ap, weapon, ammo);
+                updateHUD(name, server, time, date, cash, bank, hp, ap, weapon, ammo);
             });
         }
+
+        // Facem funcția globală ca să poată fi accesată fără probleme
+        window.updateHUD = function(name, server, time, date, cash, bank, hp, ap, weapon, ammo) {
+            try {
+                document.getElementById('ply-name').innerText = name;
+                document.getElementById('srv-name').innerText = server;
+                document.getElementById('hud-time').innerText = time;
+                document.getElementById('hud-date').innerText = date;
+                
+                document.getElementById('hud-cash').innerText = "$" + cash.toLocaleString('ro-RO');
+                document.getElementById('hud-bank').innerText = "$" + bank.toLocaleString('ro-RO');
+
+                // Viață și Armură (delimitate corect 0-100)
+                let cleanHp = Math.min(Math.max(hp, 0), 100);
+                let cleanAp = Math.min(Math.max(ap, 0), 100);
+
+                document.getElementById('bar-hp').style.width = cleanHp + "%";
+                document.getElementById('hp-val').innerText = Math.round(cleanHp) + "%"; // Corectat ghilimelele greșite
+
+                document.getElementById('bar-ap').style.width = cleanAp + "%";
+                document.getElementById('ap-val').innerText = Math.round(cleanAp) + "%";
+
+                // Armă și Gloanțe
+                document.getElementById('weap-name').innerText = weapon;
+                document.getElementById('weap-ammo').innerText = ammo;
+            } catch (err) {
+                console.error("Eroare la update HUD:", err);
+            }
+        };
     </script>
 </body>
 </html>
