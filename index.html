@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valor HUD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: transparent; /* Transparent pentru ca fundalul să fie jocul */
+            overflow: hidden;
+        }
+
+        .hud-container {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            width: 280px;
+            background: rgba(15, 15, 20, 0.75);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            color: #ffffff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+
+        .server-logo {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            color: #33ccff;
+            text-shadow: 0 0 10px rgba(51, 204, 255, 0.5);
+        }
+
+        .time-date {
+            font-size: 11px;
+            color: #aaaaaa;
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .label {
+            color: #8888aa;
+            font-weight: 600;
+        }
+
+        .value {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .money {
+            color: #00ff66;
+            text-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
+        }
+
+        /* Bare de progres (Viață / Armură) */
+        .bar-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            height: 6px;
+            overflow: hidden;
+            margin-top: 3px;
+            margin-bottom: 8px;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .hp-fill {
+            background: linear-gradient(90deg, #ff3333, #ff6666);
+            box-shadow: 0 0 8px rgba(255, 51, 51, 0.5);
+        }
+
+        .ap-fill {
+            background: linear-gradient(90deg, #3388ff, #66bbff);
+            box-shadow: 0 0 8px rgba(51, 136, 255, 0.5);
+        }
+
+        .weapon-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px 10px;
+            border-radius: 6px;
+            margin-top: 5px;
+        }
+
+        .weapon-name {
+            font-size: 12px;
+            color: #ffcc00;
+            font-weight: 600;
+        }
+
+        .weapon-ammo {
+            font-size: 11px;
+            color: #dddddd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="hud-container">
+        <!-- Header: Nume Server & Ora -->
+        <div class="hud-header">
+            <div class="server-logo">VALOR</div>
+            <div id="timedate" class="time-date">12:00 | 30.10</div>
+        </div>
+
+        <!-- Bani Cash -->
+        <div class="hud-row">
+            <span class="label">CASH</span>
+            <span id="cash" class="value money">$0</span>
+        </div>
+
+        <!-- Viață -->
+        <div>
+            <div class="hud-row" style="margin-bottom: 2px;">
+                <span class="label">VIATĂ</span>
+                <span id="hp-text" class="value">100%</span>
+            </div>
+            <div class="bar-container">
+                <div id="hp-bar" class="bar-fill hp-fill" style="width: 100%;"></div>
+            </div>
+        </div>
+
+        <!-- Armură -->
+        <div>
+            <div class="hud-row" style="margin-bottom: 2px;">
+                <span class="label">ARMURĂ</span>
+                <span id="ap-text" class="value">0%</span>
+            </div>
+            <div class="bar-container">
+                <div id="ap-bar" class="bar-fill ap-fill" style="width: 0%;"></div>
+            </div>
+        </div>
+
+        <!-- Căsuță Armă -->
+        <div class="weapon-box">
+            <span id="weapon-name" class="weapon-name">Fists</span>
+            <span id="weapon-ammo" class="weapon-ammo">0 / 0</span>
+        </div>
+    </div>
+
+    <script>
+        // Funcție pe care o poți apela din PAWN/JS prin CEF pentru a actualiza datele instant
+        function updateHUD(data) {
+            if(data.cash !== undefined) document.getElementById('cash').innerText = '$' + Number(data.cash).toLocaleString();
+            if(data.hp !== undefined) {
+                document.getElementById('hp-text').innerText = Math.round(data.hp) + '%';
+                document.getElementById('hp-bar').style.width = Math.max(0, Math.min(100, data.hp)) + '%';
+            }
+            if(data.ap !== undefined) {
+                document.getElementById('ap-text').innerText = Math.round(data.ap) + '%';
+                document.getElementById('ap-bar').style.width = Math.max(0, Math.min(100, data.ap)) + '%';
+            }
+            if(data.time !== undefined) document.getElementById('timedate').innerText = data.time;
+            if(data.weapon !== undefined) document.getElementById('weapon-name').innerText = data.weapon;
+            if(data.ammo !== undefined) document.getElementById('weapon-ammo').innerText = data.ammo;
+        }
+
+        // Exemplu de test local (șterge sau comentează când îl legi la server)
+        // updateHUD({ cash: 154200, hp: 85, ap: 50, time: "22:15 | 30.10", weapon: "M4", ammo: "150 / 300" });
+    </script>
+</body>
+</html>
