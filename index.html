@@ -205,37 +205,39 @@
     </div>
 
     <script>
-        if (typeof cef !== 'undefined') {
-            cef.on("updateHUDData", (name, server, time, date, cash, bank, hp, ap, weapon, ammo) => {
-                updateHUD(name, server, time, date, cash, bank, hp, ap, weapon, ammo);
-            });
+    // Această secțiune ascultă evenimentele venite din PAWN dacă pluginul folosește bridge-ul nativ CEF
+    if (typeof cef !== 'undefined') {
+        cef.on("updateHUDData", (name, server, time, date, cash, bank, hp, ap, weapon, ammo) => {
+            window.updateHUD(name, server, time, date, cash, bank, hp, ap, weapon, ammo);
+        });
+    }
+
+    // Funcția globală care va fi apelată direct din PAWN prin execuție de script JS
+    window.updateHUD = function(name, server, time, date, cash, bank, hp, ap, weapon, ammo) {
+        try {
+            document.getElementById('ply-name').innerText = name;
+            document.getElementById('srv-name').innerText = server;
+            document.getElementById('hud-time').innerText = time;
+            document.getElementById('hud-date').innerText = date;
+            
+            document.getElementById('hud-cash').innerText = "$" + cash.toLocaleString('ro-RO');
+            document.getElementById('hud-bank').innerText = "$" + bank.toLocaleString('ro-RO');
+
+            let cleanHp = Math.min(Math.max(hp, 0), 100);
+            let cleanAp = Math.min(Math.max(ap, 0), 100);
+
+            document.getElementById('bar-hp').style.width = cleanHp + "%";
+            document.getElementById('hp-val').innerText = Math.round(cleanHp) + "%";
+
+            document.getElementById('bar-ap').style.width = cleanAp + "%";
+            document.getElementById('ap-val').innerText = Math.round(cleanAp) + "%";
+
+            document.getElementById('weap-name').innerText = weapon;
+            document.getElementById('weap-ammo').innerText = ammo;
+        } catch (err) {
+            console.error("Eroare la update HUD:", err);
         }
-
-        window.updateHUD = function(name, server, time, date, cash, bank, hp, ap, weapon, ammo) {
-            try {
-                document.getElementById('ply-name').innerText = name;
-                document.getElementById('srv-name').innerText = server;
-                document.getElementById('hud-time').innerText = time;
-                document.getElementById('hud-date').innerText = date;
-                
-                document.getElementById('hud-cash').innerText = "$" + cash.toLocaleString('ro-RO');
-                document.getElementById('hud-bank').innerText = "$" + bank.toLocaleString('ro-RO');
-
-                let cleanHp = Math.min(Math.max(hp, 0), 100);
-                let cleanAp = Math.min(Math.max(ap, 0), 100);
-
-                document.getElementById('bar-hp').style.width = cleanHp + "%";
-                document.getElementById('hp-val').innerText = Math.round(cleanHp) + "%";
-
-                document.getElementById('bar-ap').style.width = cleanAp + "%";
-                document.getElementById('ap-val').innerText = Math.round(cleanAp) + "%";
-
-                document.getElementById('weap-name').innerText = weapon;
-                document.getElementById('weap-ammo').innerText = ammo;
-            } catch (err) {
-                console.error("Eroare la update HUD:", err);
-            }
-        };
-    </script>
+    };
+</script>
 </body>
 </html>
